@@ -48,7 +48,12 @@ class MinecraftLiveController:
         asyncio.get_event_loop().create_task(self.queue.put(command))
 
     def set_blocks_relative(self, points, block_name, tile_data=0, delay=0.05):
-        points = list(set(points))
+        ps = set()
+        for p in points:
+            ps.add((int(p[0]), int(p[1]), int(p[2])))
+        points = list(ps)
+        points.sort(key=lambda x: x[1])
+
         async def _internal_worker():
             print(f"Start building: {len(points)} {block_name}...")
             for i, (x, y, z) in enumerate(points):
