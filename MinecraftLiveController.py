@@ -47,7 +47,10 @@ class MinecraftLiveController:
     def run_cmd(self, command):
         asyncio.get_event_loop().create_task(self.queue.put(command))
 
-    def set_blocks_relative(self, points, block_name, tile_data=0, delay=0.05):
+    def set_blocks(self, points, block_name, tile_data=0, delay=0.05):
+        self.set_blocks_with_select_func(points, lambda: block_name, tile_data, delay)
+
+    def set_blocks_with_select_func(self, points, block_func, tile_data=0, delay=0.05):
         ps = set()
         for p in points:
             ps.add((int(p[0]), int(p[1]), int(p[2])))
@@ -55,8 +58,9 @@ class MinecraftLiveController:
         points.sort(key=lambda x: x[1])
 
         async def _internal_worker():
-            print(f"Start building: {len(points)} {block_name}...")
+            print(f"Start building: {len(points)} blocks...")
             for i, (x, y, z) in enumerate(points):
+                block_name = block_func(x, y, z)
                 self.set_block("~" + str(int(x)), "~" + str(int(y)), "~" + str(int(z)), block_name, tile_data)
                 await asyncio.sleep(delay)
                 if (i + 1) % 100 == 0:
